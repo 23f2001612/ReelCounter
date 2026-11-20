@@ -13,6 +13,7 @@ class MainActivity : Activity() {
     private lateinit var todayValue: TextView
     private lateinit var totalValue: TextView
     private lateinit var statusValue: TextView
+    private lateinit var diagnosticValue: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,47 +31,41 @@ class MainActivity : Activity() {
             gravity = Gravity.TOP
             setPadding(28, 36, 28, 28)
         }
-
-        val title = TextView(this).apply {
-            text = "ReelCounter"
-            textSize = 30f
-        }
-        val subtitle = TextView(this).apply {
-            text = "Your Instagram Reels tracker"
-            textSize = 16f
-        }
+        root.addView(TextView(this).apply { text = "ReelCounter"; textSize = 30f })
+        root.addView(TextView(this).apply { text = "Reel detection diagnostics"; textSize = 16f })
         todayValue = TextView(this).apply { textSize = 42f }
-        val todayLabel = TextView(this).apply {
-            text = "REELS TODAY"
-            textSize = 13f
-        }
+        root.addView(todayValue)
+        root.addView(TextView(this).apply { text = "REELS TODAY"; textSize = 13f })
         totalValue = TextView(this).apply { textSize = 22f }
+        root.addView(totalValue)
         statusValue = TextView(this).apply { textSize = 14f }
-
-        val enableButton = Button(this).apply {
-            text = "Enable background tracking"
-            setOnClickListener {
-                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            }
-        }
-        val trackingButton = Button(this).apply {
-            text = if (StatsStore.isTrackingEnabled(this@MainActivity)) "Pause tracking" else "Resume tracking"
+        root.addView(statusValue)
+        root.addView(Button(this).apply {
+            text = "Open Accessibility settings"
+            setOnClickListener { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+        })
+        root.addView(Button(this).apply {
+            text = if (StatsStore.isTrackingEnabled(this@MainActivity)) "Pause diagnostics" else "Resume diagnostics"
             setOnClickListener {
                 val enabled = !StatsStore.isTrackingEnabled(this@MainActivity)
                 StatsStore.setTrackingEnabled(this@MainActivity, enabled)
-                text = if (enabled) "Pause tracking" else "Resume tracking"
+                text = if (enabled) "Pause diagnostics" else "Resume diagnostics"
                 refreshDashboard()
             }
+        })
+        root.addView(TextView(this).apply {
+            text = "LATEST INSTAGRAM EVENTS"
+            textSize = 14f
+        })
+        diagnosticValue = TextView(this).apply {
+            textSize = 11f
+            setTextIsSelectable(true)
         }
-
-        root.addView(title)
-        root.addView(subtitle)
-        root.addView(todayValue)
-        root.addView(todayLabel)
-        root.addView(totalValue)
-        root.addView(statusValue)
-        root.addView(enableButton)
-        root.addView(trackingButton)
+        root.addView(diagnosticValue)
+        root.addView(Button(this).apply {
+            text = "Refresh diagnostic log"
+            setOnClickListener { refreshDashboard() }
+        })
         setContentView(root)
     }
 
@@ -78,9 +73,10 @@ class MainActivity : Activity() {
         todayValue.text = StatsStore.todayCount(this).toString()
         totalValue.text = "All-time total: ${StatsStore.totalCount(this)}"
         statusValue.text = if (StatsStore.isTrackingEnabled(this)) {
-            "Tracking is enabled. ReelCounter can count while you use other apps."
+            "Diagnostic mode is active. Counting is temporarily paused to prevent false Reel totals."
         } else {
-            "Tracking is paused."
+            "Diagnostics are paused."
         }
+        diagnosticValue.text = StatsStore.diagnostics(this)
     }
 }
