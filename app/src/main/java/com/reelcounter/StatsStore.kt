@@ -20,6 +20,13 @@ object StatsStore {
     fun todayCount(context: Context): Int = prefs(context).getInt(KEY_PREFIX + todayKey(), 0)
     fun totalCount(context: Context): Int = prefs(context).getInt(KEY_TOTAL, 0)
 
+    fun resetCounts(context: Context) {
+        val p = prefs(context)
+        val editor = p.edit().putInt(KEY_TOTAL, 0)
+        p.all.keys.filter { it.startsWith(KEY_PREFIX) }.forEach { editor.remove(it) }
+        editor.apply()
+    }
+
     fun recordReel(context: Context): Int {
         val p = prefs(context)
         val key = KEY_PREFIX + todayKey()
