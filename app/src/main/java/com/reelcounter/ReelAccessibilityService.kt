@@ -65,8 +65,15 @@ class ReelAccessibilityService : AccessibilityService() {
 
         val packageName = event.packageName?.toString()
         if (packageName != INSTAGRAM_PACKAGE) {
-            lastReelIndex = null
-            lastReelItemCount = null
+            // Ignore transient system/overlay accessibility events. Only clear the
+            // Reel baseline when a real window switch explicitly leaves Instagram.
+            if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+                packageName != null
+            ) {
+                lastReelIndex = null
+                lastReelItemCount = null
+                StatsStore.addDiagnostic(this, "REELS baseline cleared: left Instagram package=$packageName")
+            }
             return
         }
 
@@ -124,10 +131,10 @@ class ReelAccessibilityService : AccessibilityService() {
                     }
                 }
             } else if (sourceClass == RECYCLER_VIEW) {
-                // A normal feed scroll is not a Reel navigation. Clear the baseline
-                // so returning to the Reels viewer cannot count an index jump.
-                lastReelIndex = null
-                lastReelItemCount = null
+                // Instagram can emit RecyclerView scroll events for trays and nested
+                // containers while the Reels pager remains active. Do not discard the
+                // pager index; its next ViewPager event is still the authoritative index.
+                StatsStore.addDiagnostic(this, "REELS baseline preserved on nested RecyclerView event")
             }
 
             logScrollableNodes(rootInActiveWindow)
