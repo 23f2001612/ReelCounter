@@ -25,6 +25,7 @@ class ReelAccessibilityService : AccessibilityService() {
     private var watchTimerRunning = false
     private var lastWatchTick = 0L
     private var lastViewerDetectedAt = 0L
+    private var lastWatchScanAt = 0L
 
     private val watchTick = object : Runnable {
         override fun run() {
@@ -68,8 +69,6 @@ class ReelAccessibilityService : AccessibilityService() {
             lastReelItemCount = null
             return
         }
-
-        refreshWatchDetection()
 
         if (!StatsStore.isTrackingEnabled(this)) {
             lastReelIndex = null
@@ -132,12 +131,20 @@ class ReelAccessibilityService : AccessibilityService() {
             }
 
             logScrollableNodes(rootInActiveWindow)
-        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            StatsStore.addDiagnostic(this, "WINDOW ${event.className ?: "?"}")
+        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+            event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+        ) {
+            refreshWatchDetection()
+            if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                StatsStore.addDiagnostic(this, "WINDOW ${event.className ?: "?"}")
+            }
         }
     }
 
     private fun refreshWatchDetection() {
+        val scanNow = SystemClock.elapsedRealtime()
+        if (scanNow - lastWatchScanAt < 1500L) return
+        lastWatchScanAt = scanNow
         if (!StatsStore.isTrackingEnabled(this)) {
             stopWatchTimer()
             return
