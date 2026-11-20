@@ -274,6 +274,10 @@ class ReelAccessibilityService : AccessibilityService() {
             } else {
                 Notification.Builder(context)
             }
+            val liveAlertExtras = android.os.Bundle().apply {
+                putBoolean("android.requestPromotedOngoing", true)
+                putString("android.shortCriticalText", todayCount.coerceAtLeast(0).toString())
+            }
             val notification = builder
                 .setSmallIcon(Icon.createWithBitmap(bitmap))
                 .setContentTitle("ReelCounter")
@@ -282,6 +286,7 @@ class ReelAccessibilityService : AccessibilityService() {
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setCategory(Notification.CATEGORY_STATUS)
+                .addExtras(liveAlertExtras)
                 .build()
             context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
         }
