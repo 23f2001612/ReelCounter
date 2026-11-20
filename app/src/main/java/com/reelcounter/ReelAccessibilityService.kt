@@ -58,9 +58,8 @@ class ReelAccessibilityService : AccessibilityService() {
                 val previousIndex = lastReelIndex
 
                 val currentItemCount = event.itemCount
-                val previousItemCount = lastReelItemCount
 
-                if (previousIndex == null || previousItemCount != currentItemCount) {
+                if (previousIndex == null) {
                     lastReelIndex = currentIndex
                     lastReelItemCount = currentItemCount
                     StatsStore.addDiagnostic(
@@ -72,8 +71,8 @@ class ReelAccessibilityService : AccessibilityService() {
                     lastReelIndex = currentIndex
                     lastReelItemCount = currentItemCount
 
-                    // Large jumps are usually Instagram changing pagers/screens,
-                    // not a user swiping through that many Reels.
+                    // Ignore large pager resets, but do not reset the baseline
+                    // just because Instagram appended more items while loading Reels.
                     if (crossedReels > MAX_REEL_STEPS_PER_EVENT) {
                         StatsStore.addDiagnostic(
                             this,
@@ -87,7 +86,7 @@ class ReelAccessibilityService : AccessibilityService() {
                         updateNotification(this, count)
                         StatsStore.addDiagnostic(
                             this,
-                            "REELS counted steps=$crossedReels index=$previousIndex->$currentIndex today=$count"
+                            "REELS counted steps=$crossedReels index=$previousIndex->$currentIndex items=$currentItemCount today=$count"
                         )
                     }
                 }
