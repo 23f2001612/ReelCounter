@@ -5,7 +5,9 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.Bitmap\nimport android.graphics.Canvas\nimport android.graphics.drawable.Drawable\nimport android.os.Build
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
