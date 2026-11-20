@@ -15,6 +15,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -61,9 +62,18 @@ class MainActivity : Activity() {
     }
 
     private fun buildShell() {
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(bg) }
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(bg)
+            fitsSystemWindows = true
+            setOnApplyWindowInsetsListener { view, insets ->
+                view.setPadding(0, insets.systemWindowInsetTop, 0, 0)
+                nav.setPadding(dp(6), dp(7), dp(6), maxOf(dp(8), insets.systemWindowInsetBottom))
+                insets
+            }
+        }
         scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false }
-        page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(16), dp(18), dp(20)) }
+        page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(12), dp(18), dp(28)) }
         scroll.addView(page)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         nav = LinearLayout(this).apply {
@@ -77,6 +87,7 @@ class MainActivity : Activity() {
         root.addView(navWrap)
         setContentView(root)
         renderTab()
+        root.requestApplyInsets()
     }
 
     private fun renderTab() {
@@ -116,15 +127,8 @@ class MainActivity : Activity() {
         hero.addView(row)
         page.addView(hero)
         val stats = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val narrow = resources.configuration.screenWidthDp < 380
-        if (narrow) {
-            stats.orientation = LinearLayout.VERTICAL
-            stats.addView(metricCard("WATCH TIME", formatDuration(StatsStore.todayWatchSeconds(this)), "Today's Reels time"))
-            stats.addView(metricCard("SESSIONS", StatsStore.todaySessions(this).toString(), "Times opened"))
-        } else {
-            stats.addView(metricCard("WATCH TIME", formatDuration(StatsStore.todayWatchSeconds(this)), "Today's Reels time"), LinearLayout.LayoutParams(0, -2, 1f))
-            stats.addView(metricCard("SESSIONS", StatsStore.todaySessions(this).toString(), "Times opened"), LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(8) })
-        }
+        stats.addView(metricCard("WATCH TIME", formatDuration(StatsStore.todayWatchSeconds(this)), "Today's Reels time"), LinearLayout.LayoutParams(0, -2, 1f))
+        stats.addView(metricCard("SESSIONS", StatsStore.todaySessions(this).toString(), "Times opened"), LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(8) })
         page.addView(stats)
         page.addView(section("Daily goal"))
         val goal = StatsStore.dailyGoalMinutes(this)
@@ -249,16 +253,26 @@ class MainActivity : Activity() {
     }
 
     private fun header(title: String, subtitle: String) {
-        page.addView(label(title, yellow, 10f, true))
-        page.addView(big(subtitle, white, if (resources.configuration.screenWidthDp < 380) 21f else 23f).apply { setPadding(0, dp(4), 0, dp(16)) })
+        val brand = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val mark = ImageView(this).apply {
+            setImageResource(R.drawable.ic_reel_logo)
+            contentDescription = "ReelCounter logo"
+            layoutParams = LinearLayout.LayoutParams(dp(30), dp(30)).apply { rightMargin = dp(9) }
+        }
+        brand.addView(mark)
+        brand.addView(label(title, yellow, 11f, true))
+        page.addView(brand)
+        page.addView(big(subtitle, white, if (resources.configuration.screenWidthDp < 380) 22f else 25f).apply {
+            setPadding(0, dp(10), 0, dp(17))
+        })
     }
 
     private fun section(text: String): TextView =
-        label(text, white, 16f, true).apply { setPadding(0, dp(17), 0, dp(8)) }
+        label(text, white, 16f, true).apply { setPadding(0, dp(15), 0, dp(7)) }
 
     private fun cardLayout(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(16), dp(14), dp(16), dp(14))
+        setPadding(dp(14), dp(12), dp(14), dp(12))
         background = rounded(card, 20)
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) }
     }
@@ -266,7 +280,7 @@ class MainActivity : Activity() {
     private fun metricCard(title: String, value: String, foot: String): LinearLayout {
         val box = cardLayout()
         box.addView(label(title, muted, 9f, true))
-        box.addView(big(value, white, 23f).apply { setPadding(0, dp(7), 0, dp(4)) })
+        box.addView(big(value, white, if (resources.configuration.screenWidthDp < 380) 21f else 23f).apply { setPadding(0, dp(7), 0, dp(4)) })
         box.addView(label(foot, muted, 9f))
         return box
     }
