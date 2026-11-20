@@ -63,13 +63,13 @@ class MainActivity : Activity() {
     private fun buildShell() {
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(bg) }
         scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false }
-        page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(22), dp(24), dp(22), dp(24)) }
+        page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(16), dp(18), dp(20)) }
         scroll.addView(page)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         nav = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            setPadding(dp(8), dp(10), dp(8), dp(14))
+            setPadding(dp(6), dp(7), dp(6), dp(8))
             background = rounded(card, 22)
         }
         val navWrap = LinearLayout(this).apply { setPadding(dp(14), dp(8), dp(14), dp(8)); setBackgroundColor(bg) }
@@ -87,7 +87,7 @@ class MainActivity : Activity() {
             val item = TextView(this).apply {
                 text = when (tab) { "Home" -> "⌂\nHome"; "Insights" -> "◷\nInsights"; "History" -> "▤\nHistory"; else -> "⚙\nSettings" }
                 gravity = Gravity.CENTER
-                textSize = 11f
+                textSize = if (resources.configuration.screenWidthDp < 380) 10f else 11f
                 setTextColor(if (active) yellow else muted)
                 setPadding(dp(8), dp(3), dp(8), dp(3))
                 setOnClickListener { selectedTab = tab; renderTab() }
@@ -108,7 +108,7 @@ class MainActivity : Activity() {
         val tracking = StatsStore.isTrackingEnabled(this)
         val hero = cardLayout()
         hero.addView(label("TODAY'S REEL COUNT", muted, 11f))
-        hero.addView(big(StatsStore.todayCount(this).toString(), yellow, 54f))
+        hero.addView(big(StatsStore.todayCount(this).toString(), yellow, if (resources.configuration.screenWidthDp < 380) 46f else 50f))
         hero.addView(label("Reels watched today", muted, 13f))
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         row.addView(dot(if (tracking) Color.rgb(76, 210, 139) else muted))
@@ -116,8 +116,15 @@ class MainActivity : Activity() {
         hero.addView(row)
         page.addView(hero)
         val stats = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        stats.addView(metricCard("WATCH TIME", formatDuration(StatsStore.todayWatchSeconds(this)), "Today's Reels time"), LinearLayout.LayoutParams(0, -2, 1f))
-        stats.addView(metricCard("SESSIONS", StatsStore.todaySessions(this).toString(), "Times opened"), LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(10) })
+        val narrow = resources.configuration.screenWidthDp < 380
+        if (narrow) {
+            stats.orientation = LinearLayout.VERTICAL
+            stats.addView(metricCard("WATCH TIME", formatDuration(StatsStore.todayWatchSeconds(this)), "Today's Reels time"))
+            stats.addView(metricCard("SESSIONS", StatsStore.todaySessions(this).toString(), "Times opened"))
+        } else {
+            stats.addView(metricCard("WATCH TIME", formatDuration(StatsStore.todayWatchSeconds(this)), "Today's Reels time"), LinearLayout.LayoutParams(0, -2, 1f))
+            stats.addView(metricCard("SESSIONS", StatsStore.todaySessions(this).toString(), "Times opened"), LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(8) })
+        }
         page.addView(stats)
         page.addView(section("Daily goal"))
         val goal = StatsStore.dailyGoalMinutes(this)
@@ -150,7 +157,7 @@ class MainActivity : Activity() {
         page.addView(toggle)
         val access = actionButton("Accessibility permission", card) { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
         page.addView(access)
-        page.addView(label("Time measures the Instagram Reels viewer being open, not verified attention or eye contact.", muted, 11f).apply { setPadding(dp(3), dp(12), dp(3), 0) })
+        page.addView(label("Time tracks while the Reels viewer is detected. It may briefly overcount during screen transitions.", muted, 10f).apply { setPadding(dp(3), dp(12), dp(3), 0) })
     }
 
     private fun insightsPage() {
@@ -242,25 +249,25 @@ class MainActivity : Activity() {
     }
 
     private fun header(title: String, subtitle: String) {
-        page.addView(label(title, yellow, 11f, true))
-        page.addView(big(subtitle, white, 25f).apply { setPadding(0, dp(5), 0, dp(22)) })
+        page.addView(label(title, yellow, 10f, true))
+        page.addView(big(subtitle, white, if (resources.configuration.screenWidthDp < 380) 21f else 23f).apply { setPadding(0, dp(4), 0, dp(16)) })
     }
 
     private fun section(text: String): TextView =
-        label(text, white, 16f, true).apply { setPadding(0, dp(22), 0, dp(10)) }
+        label(text, white, 16f, true).apply { setPadding(0, dp(17), 0, dp(8)) }
 
     private fun cardLayout(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(18), dp(17), dp(18), dp(17))
+        setPadding(dp(16), dp(14), dp(16), dp(14))
         background = rounded(card, 20)
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) }
     }
 
     private fun metricCard(title: String, value: String, foot: String): LinearLayout {
         val box = cardLayout()
-        box.addView(label(title, muted, 10f, true))
-        box.addView(big(value, white, 25f).apply { setPadding(0, dp(7), 0, dp(4)) })
-        box.addView(label(foot, muted, 10f))
+        box.addView(label(title, muted, 9f, true))
+        box.addView(big(value, white, 23f).apply { setPadding(0, dp(7), 0, dp(4)) })
+        box.addView(label(foot, muted, 9f))
         return box
     }
 
