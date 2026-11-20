@@ -4,6 +4,8 @@ import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -233,6 +235,12 @@ class MainActivity : Activity() {
         page.addView(section("Permissions & diagnostics"))
         page.addView(actionButton("Open Accessibility settings", card) { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) })
         page.addView(actionButton("Refresh diagnostic log", card) { renderTab() })
+        page.addView(actionButton("Copy diagnostic log", yellow) {
+            val diagnosticText = StatsStore.diagnostics(this)
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("ReelCounter diagnostics", diagnosticText))
+            Toast.makeText(this, "Diagnostic log copied", Toast.LENGTH_SHORT).show()
+        })
         val logs = cardLayout()
         logs.addView(label(StatsStore.diagnostics(this), muted, 10f))
         page.addView(logs)
