@@ -246,9 +246,8 @@ class MainActivity : Activity() {
         page.addView(big(subtitle, white, 25f).apply { setPadding(0, dp(5), 0, dp(22)) })
     }
 
-    private fun section(text: String) {
-        page.addView(label(text, white, 16f, true).apply { setPadding(0, dp(22), 0, dp(10)) })
-    }
+    private fun section(text: String): TextView =
+        label(text, white, 16f, true).apply { setPadding(0, dp(22), 0, dp(10)) }
 
     private fun cardLayout(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
@@ -292,7 +291,7 @@ class MainActivity : Activity() {
         }
         alpha = if (progress <= 0f) 0.12f else 0.35f + progress * 0.65f
         scaleX = progress.coerceAtLeast(0.025f)
-        transformPivotX = 0f
+        pivotX = 0f
         layoutParams = LinearLayout.LayoutParams(-1, dp(7)).apply { topMargin = dp(12); bottomMargin = dp(12) }
     }
 
