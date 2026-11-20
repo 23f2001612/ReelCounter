@@ -54,17 +54,18 @@ class ReelAccessibilityService : AccessibilityService() {
     private fun createCountIcon(count: Int): Icon {
         val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        val label = if (count > 999) "99+" else count.toString()
+        val label = count.coerceAtLeast(0).toString()
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            textSize = when (label.length) {
-                1 -> 34f
-                2 -> 28f
-                else -> 21f
-            }
+            textSize = 34f
         }
+
+        while (paint.measureText(label) > 46f && paint.textSize > 8f) {
+            paint.textSize -= 1f
+        }
+
         val baseline = (48f - (paint.ascent() + paint.descent())) / 2f
         canvas.drawText(label, 24f, baseline, paint)
         return Icon.createWithBitmap(bitmap)
