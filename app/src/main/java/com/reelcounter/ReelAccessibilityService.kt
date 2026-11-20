@@ -16,24 +16,62 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 
 class ReelAccessibilityService : AccessibilityService() {
+    private var lastReelIndex: Int? = null
+
     override fun onServiceConnected() {
         super.onServiceConnected()
+        lastReelIndex = null
         updateNotification(this, StatsStore.todayCount(this))
         StatsStore.addDiagnostic(this, "SERVICE connected")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event == null || !StatsStore.isTrackingEnabled(this)) return
-        if (event.packageName?.toString() != INSTAGRAM_PACKAGE) return
+        if (event == null) return
+
+        val packageName = event.packageName?.toString()
+        if (packageName != INSTAGRAM_PACKAGE) {
+            lastReelIndex = null
+            return
+        }
+
+        if (!StatsStore.isTrackingEnabled(this)) {
+            lastReelIndex = null
+            return
+        }
 
         if (event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             val source = event.source
+            val sourceClass = source?.className?.toString()
             val bounds = android.graphics.Rect()
             source?.getBoundsInScreen(bounds)
+
             StatsStore.addDiagnostic(
                 this,
-                "SCROLL class=${source?.className ?: event.className ?: "?"} id=${source?.viewIdResourceName ?: "-"} scrollable=${source?.isScrollable ?: false} from=${event.fromIndex} to=${event.toIndex} items=${event.itemCount} x=${event.scrollX} y=${event.scrollY} maxX=${event.maxScrollX} maxY=${event.maxScrollY} bounds=${bounds.flattenToString()} text=${(source?.text ?: source?.contentDescription ?: "-").toString().take(60)}"
+                "SCROLL class=${sourceClass ?: event.className ?: "?"} id=${source?.viewIdResourceName ?: "-"} scrollable=${source?.isScrollable ?: false} from=${event.fromIndex} to=${event.toIndex} items=${event.itemCount} x=${event.scrollX} y=${event.scrollY} maxX=${event.maxScrollX} maxY=${event.maxScrollY} bounds=${bounds.flattenToString()} text=${(source?.text ?: source?.contentDescription ?: "-").toString().take(60)}"
             )
+
+            if (sourceClass == REELS_VIEW_PAGER && source?.isScrollable == true && event.toIndex >= 0) {
+                val currentIndex = event.toIndex
+                val previousIndex = lastReelIndex
+
+                if (previousIndex == null) {
+                    lastReelIndex = currentIndex
+                    StatsStore.addDiagnostic(this, "REELS baseline index=$currentIndex")
+                } else if (currentIndex != previousIndex) {
+                    lastReelIndex = currentIndex
+                    val count = StatsStore.recordReel(this)
+                    updateNotification(this, count)
+                    StatsStore.addDiagnostic(
+                        this,
+                        "REEL counted index=$previousIndex->$currentIndex today=$count"
+                    )
+                }
+            } else if (sourceClass == RECYCLER_VIEW) {
+                // A normal feed scroll is not a Reel navigation. Clear the baseline
+                // so returning to the Reels viewer cannot count an index jump.
+                lastReelIndex = null
+            }
+
             logScrollableNodes(rootInActiveWindow)
         } else if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             StatsStore.addDiagnostic(this, "WINDOW ${event.className ?: "?"}")
@@ -71,6 +109,8 @@ class ReelAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val INSTAGRAM_PACKAGE = "com.instagram.android"
+        private const val REELS_VIEW_PAGER = "androidx.viewpager.widget.ViewPager"
+        private const val RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
         private const val CHANNEL_ID = "reel_counter_live"
         private const val NOTIFICATION_ID = 247
 
