@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -17,8 +18,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 class ReelAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
-        createNotificationChannel()
-        updateNotification(StatsStore.todayCount(this))
+        updateNotification(this, StatsStore.todayCount(this))
         StatsStore.addDiagnostic(this, "SERVICE connected")
     }
 
@@ -69,49 +69,52 @@ class ReelAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() = Unit
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "ReelCounter live count", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Displays the confirmed Instagram Reel count"
-                setShowBadge(false)
-            }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        }
-    }
-
-    private fun createCountIcon(count: Int): Icon {
-        val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val label = count.coerceAtLeast(0).toString()
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            textAlign = Paint.Align.CENTER
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            textSize = 34f
-        }
-        while (paint.measureText(label) > 46f && paint.textSize > 8f) paint.textSize -= 1f
-        val baseline = (48f - (paint.ascent() + paint.descent())) / 2f
-        canvas.drawText(label, 24f, baseline, paint)
-        return Icon.createWithBitmap(bitmap)
-    }
-
-    private fun updateNotification(todayCount: Int) {
-        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(this, CHANNEL_ID) else Notification.Builder(this)
-        val notification = builder
-            .setSmallIcon(createCountIcon(todayCount))
-            .setContentTitle("ReelCounter")
-            .setContentText("$todayCount Reels today")
-            .setSubText("Instagram Reel counter")
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setCategory(Notification.CATEGORY_STATUS)
-            .build()
-        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
-    }
-
     companion object {
         private const val INSTAGRAM_PACKAGE = "com.instagram.android"
         private const val CHANNEL_ID = "reel_counter_live"
         private const val NOTIFICATION_ID = 247
+
+        fun updateNotification(context: Context, todayCount: Int) {
+            if (Build.VERSION.SDK_INT >= 33 &&
+                context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) return
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(CHANNEL_ID, "ReelCounter live count", NotificationManager.IMPORTANCE_LOW).apply {
+                    description = "Displays the confirmed Instagram Reel count"
+                    setShowBadge(false)
+                }
+                context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+            }
+
+            val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            val label = todayCount.coerceAtLeast(0).toString()
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textAlign = Paint.Align.CENTER
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textSize = 34f
+            }
+            while (paint.measureText(label) > 46f && paint.textSize > 8f) paint.textSize -= 1f
+            val baseline = (48f - (paint.ascent() + paint.descent())) / 2f
+            canvas.drawText(label, 24f, baseline, paint)
+
+            val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Notification.Builder(context, CHANNEL_ID)
+            } else {
+                Notification.Builder(context)
+            }
+            val notification = builder
+                .setSmallIcon(Icon.createWithBitmap(bitmap))
+                .setContentTitle("ReelCounter")
+                .setContentText("$todayCount Reels today")
+                .setSubText("Instagram Reel counter")
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setCategory(Notification.CATEGORY_STATUS)
+                .build()
+            context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
+        }
     }
 }
