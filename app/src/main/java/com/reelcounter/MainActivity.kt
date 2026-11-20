@@ -11,12 +11,14 @@ import android.provider.Settings
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 
 class MainActivity : Activity() {
     private lateinit var todayValue: TextView
     private lateinit var totalValue: TextView
     private lateinit var statusValue: TextView
+    private lateinit var trackingButton: Button
     private lateinit var diagnosticValue: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,21 +53,30 @@ class MainActivity : Activity() {
     }
 
     private fun buildDashboard() {
-        val root = LinearLayout(this).apply {
+        val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.TOP
             setPadding(28, 36, 28, 28)
         }
-        root.addView(TextView(this).apply { text = "ReelCounter"; textSize = 30f })
-        root.addView(TextView(this).apply { text = "Reel detection diagnostics"; textSize = 16f })
+        content.addView(TextView(this).apply { text = "ReelCounter"; textSize = 30f })
+        content.addView(TextView(this).apply { text = "Reel detection diagnostics"; textSize = 16f })
         todayValue = TextView(this).apply { textSize = 42f }
-        root.addView(todayValue)
-        root.addView(TextView(this).apply { text = "REELS TODAY"; textSize = 13f })
+        content.addView(todayValue)
+        content.addView(TextView(this).apply { text = "REELS TODAY"; textSize = 13f })
         totalValue = TextView(this).apply { textSize = 22f }
-        root.addView(totalValue)
+        content.addView(totalValue)
         statusValue = TextView(this).apply { textSize = 14f }
-        root.addView(statusValue)
-        root.addView(Button(this).apply {
+        content.addView(statusValue)
+
+        trackingButton = Button(this)
+        trackingButton.setOnClickListener {
+            val enabled = !StatsStore.isTrackingEnabled(this)
+            StatsStore.setTrackingEnabled(this, enabled)
+            refreshDashboard()
+        }
+        content.addView(trackingButton)
+
+        content.addView(Button(this).apply {
             text = "Reset counts"
             setOnClickListener {
                 AlertDialog.Builder(this@MainActivity)
@@ -80,20 +91,11 @@ class MainActivity : Activity() {
                     .show()
             }
         })
-        root.addView(Button(this).apply {
+        content.addView(Button(this).apply {
             text = "Open Accessibility settings"
             setOnClickListener { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
         })
-        root.addView(Button(this).apply {
-            text = if (StatsStore.isTrackingEnabled(this@MainActivity)) "Pause diagnostics" else "Resume diagnostics"
-            setOnClickListener {
-                val enabled = !StatsStore.isTrackingEnabled(this@MainActivity)
-                StatsStore.setTrackingEnabled(this@MainActivity, enabled)
-                text = if (enabled) "Pause diagnostics" else "Resume diagnostics"
-                refreshDashboard()
-            }
-        })
-        root.addView(TextView(this).apply {
+        content.addView(TextView(this).apply {
             text = "LATEST INSTAGRAM EVENTS"
             textSize = 14f
         })
@@ -101,21 +103,28 @@ class MainActivity : Activity() {
             textSize = 11f
             setTextIsSelectable(true)
         }
-        root.addView(diagnosticValue)
-        root.addView(Button(this).apply {
+        content.addView(diagnosticValue)
+        content.addView(Button(this).apply {
             text = "Refresh diagnostic log"
             setOnClickListener { refreshDashboard() }
         })
-        setContentView(root)
+
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(content)
+        }
+        setContentView(scroll)
     }
 
     private fun refreshDashboard() {
         todayValue.text = StatsStore.todayCount(this).toString()
         totalValue.text = "All-time total: ${StatsStore.totalCount(this)}"
-        statusValue.text = if (StatsStore.isTrackingEnabled(this)) {
-            "Diagnostic mode is active. Counting is temporarily paused to prevent false Reel totals."
+        val enabled = StatsStore.isTrackingEnabled(this)
+        trackingButton.text = if (enabled) "Stop tracking" else "Start tracking"
+        statusValue.text = if (enabled) {
+            "Tracking is ON. Diagnostic events are being collected; automatic Reel counting remains paused until Reel detection is verified."
         } else {
-            "Diagnostics are paused."
+            "Tracking is OFF. Instagram events are not being collected."
         }
         diagnosticValue.text = StatsStore.diagnostics(this)
     }
