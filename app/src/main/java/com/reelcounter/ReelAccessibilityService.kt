@@ -58,12 +58,16 @@ class ReelAccessibilityService : AccessibilityService() {
                     lastReelIndex = currentIndex
                     StatsStore.addDiagnostic(this, "REELS baseline index=$currentIndex")
                 } else if (currentIndex != previousIndex) {
+                    val crossedReels = kotlin.math.abs(currentIndex - previousIndex)
                     lastReelIndex = currentIndex
-                    val count = StatsStore.recordReel(this)
+                    var count = StatsStore.todayCount(this)
+                    repeat(crossedReels) {
+                        count = StatsStore.recordReel(this)
+                    }
                     updateNotification(this, count)
                     StatsStore.addDiagnostic(
                         this,
-                        "REEL counted index=$previousIndex->$currentIndex today=$count"
+                        "REELS counted steps=$crossedReels index=$previousIndex->$currentIndex today=$count"
                     )
                 }
             } else if (sourceClass == RECYCLER_VIEW) {
