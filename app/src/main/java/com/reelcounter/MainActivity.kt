@@ -117,7 +117,7 @@ class MainActivity : Activity() {
     }
 
     private fun homePage() {
-        header("REELCOUNTER", "Your scrolling, made visible.")
+        header("REELO", "Your scrolling, made visible.")
         val tracking = StatsStore.isTrackingEnabled(this)
         val hero = cardLayout()
         hero.addView(label("TODAY'S REEL COUNT", muted, 11f))
