@@ -5,12 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
-import android.graphics.Color
-import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -249,25 +243,12 @@ class ReelAccessibilityService : AccessibilityService() {
             ) return
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(CHANNEL_ID, "ReelCounter live count", NotificationManager.IMPORTANCE_LOW).apply {
-                    description = "Displays the confirmed Instagram Reel count"
+                val channel = NotificationChannel(CHANNEL_ID, "Reelo live count", NotificationManager.IMPORTANCE_LOW).apply {
+                    description = "Displays the live Reel count"
                     setShowBadge(false)
                 }
                 context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
             }
-
-            val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ALPHA_8)
-            val canvas = Canvas(bitmap)
-            val label = todayCount.coerceAtLeast(0).toString()
-            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.WHITE
-                textAlign = Paint.Align.CENTER
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                textSize = 34f
-            }
-            while (paint.measureText(label) > 46f && paint.textSize > 8f) paint.textSize -= 1f
-            val baseline = (48f - (paint.ascent() + paint.descent())) / 2f
-            canvas.drawText(label, 24f, baseline, paint)
 
             val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 Notification.Builder(context, CHANNEL_ID)
@@ -279,10 +260,9 @@ class ReelAccessibilityService : AccessibilityService() {
                 putString("android.shortCriticalText", todayCount.coerceAtLeast(0).toString())
             }
             val notification = builder
-                .setSmallIcon(Icon.createWithBitmap(bitmap))
-                .setContentTitle("ReelCounter")
+                .setSmallIcon(R.drawable.ic_reelo_notification)
+                .setContentTitle("Reelo")
                 .setContentText("$todayCount Reels today")
-                .setSubText("Instagram Reel counter")
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setCategory(Notification.CATEGORY_STATUS)
