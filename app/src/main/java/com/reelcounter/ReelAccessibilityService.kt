@@ -17,10 +17,12 @@ import android.view.accessibility.AccessibilityNodeInfo
 
 class ReelAccessibilityService : AccessibilityService() {
     private var lastReelIndex: Int? = null
+    private var lastReelItemCount: Int? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         lastReelIndex = null
+        lastReelItemCount = null
         updateNotification(this, StatsStore.todayCount(this))
         StatsStore.addDiagnostic(this, "SERVICE connected")
     }
@@ -31,6 +33,7 @@ class ReelAccessibilityService : AccessibilityService() {
         val packageName = event.packageName?.toString()
         if (packageName != INSTAGRAM_PACKAGE) {
             lastReelIndex = null
+            lastReelItemCount = null
             return
         }
 
@@ -54,26 +57,45 @@ class ReelAccessibilityService : AccessibilityService() {
                 val currentIndex = event.toIndex
                 val previousIndex = lastReelIndex
 
-                if (previousIndex == null) {
+                val currentItemCount = event.itemCount
+                val previousItemCount = lastReelItemCount
+
+                if (previousIndex == null || previousItemCount != currentItemCount) {
                     lastReelIndex = currentIndex
-                    StatsStore.addDiagnostic(this, "REELS baseline index=$currentIndex")
+                    lastReelItemCount = currentItemCount
+                    StatsStore.addDiagnostic(
+                        this,
+                        "REELS baseline index=$currentIndex items=$currentItemCount"
+                    )
                 } else if (currentIndex != previousIndex) {
                     val crossedReels = kotlin.math.abs(currentIndex - previousIndex)
                     lastReelIndex = currentIndex
-                    var count = StatsStore.todayCount(this)
-                    repeat(crossedReels) {
-                        count = StatsStore.recordReel(this)
+                    lastReelItemCount = currentItemCount
+
+                    // Large jumps are usually Instagram changing pagers/screens,
+                    // not a user swiping through that many Reels.
+                    if (crossedReels > MAX_REEL_STEPS_PER_EVENT) {
+                        StatsStore.addDiagnostic(
+                            this,
+                            "REELS ignored navigation jump steps=$crossedReels index=$previousIndex->$currentIndex items=$currentItemCount"
+                        )
+                    } else {
+                        var count = StatsStore.todayCount(this)
+                        repeat(crossedReels) {
+                            count = StatsStore.recordReel(this)
+                        }
+                        updateNotification(this, count)
+                        StatsStore.addDiagnostic(
+                            this,
+                            "REELS counted steps=$crossedReels index=$previousIndex->$currentIndex today=$count"
+                        )
                     }
-                    updateNotification(this, count)
-                    StatsStore.addDiagnostic(
-                        this,
-                        "REELS counted steps=$crossedReels index=$previousIndex->$currentIndex today=$count"
-                    )
                 }
             } else if (sourceClass == RECYCLER_VIEW) {
                 // A normal feed scroll is not a Reel navigation. Clear the baseline
                 // so returning to the Reels viewer cannot count an index jump.
                 lastReelIndex = null
+                lastReelItemCount = null
             }
 
             logScrollableNodes(rootInActiveWindow)
@@ -114,6 +136,7 @@ class ReelAccessibilityService : AccessibilityService() {
     companion object {
         private const val INSTAGRAM_PACKAGE = "com.instagram.android"
         private const val REELS_VIEW_PAGER = "androidx.viewpager.widget.ViewPager"
+        private const val MAX_REEL_STEPS_PER_EVENT = 3
         private const val RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
         private const val CHANNEL_ID = "reel_counter_live"
         private const val NOTIFICATION_ID = 247
