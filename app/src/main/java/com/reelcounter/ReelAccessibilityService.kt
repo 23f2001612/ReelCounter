@@ -32,7 +32,7 @@ class ReelAccessibilityService : AccessibilityService() {
             source?.getBoundsInScreen(bounds)
             StatsStore.addDiagnostic(
                 this,
-                "SCROLL class=${source?.className ?: event.className ?: "?"} id=${source?.viewIdResourceName ?: "-"} scrollable=${source?.isScrollable ?: false} bounds=${bounds.flattenToString()} text=${(source?.text ?: source?.contentDescription ?: "-").toString().take(60)}"
+                "SCROLL class=${source?.className ?: event.className ?: "?"} id=${source?.viewIdResourceName ?: "-"} scrollable=${source?.isScrollable ?: false} from=${event.fromIndex} to=${event.toIndex} items=${event.itemCount} x=${event.scrollX} y=${event.scrollY} maxX=${event.maxScrollX} maxY=${event.maxScrollY} bounds=${bounds.flattenToString()} text=${(source?.text ?: source?.contentDescription ?: "-").toString().take(60)}"
             )
             logScrollableNodes(rootInActiveWindow)
         } else if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
