@@ -5,6 +5,8 @@
     <application
         android:allowBackup="false"
         android:label="ReelCounter"
+        android:icon="@drawable/ic_reel_logo"
+        android:roundIcon="@drawable/ic_reel_logo"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
