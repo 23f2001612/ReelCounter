@@ -12,12 +12,44 @@ import android.graphics.Typeface
 import android.graphics.Color
 import android.graphics.drawable.Icon
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 
 class ReelAccessibilityService : AccessibilityService() {
     private var lastReelIndex: Int? = null
     private var lastReelItemCount: Int? = null
+    private val watchHandler = Handler(Looper.getMainLooper())
+    private var watchTimerRunning = false
+    private var lastWatchTick = 0L
+    private var lastViewerDetectedAt = 0L
+
+    private val watchTick = object : Runnable {
+        override fun run() {
+            if (!watchTimerRunning) return
+            val now = SystemClock.elapsedRealtime()
+            val root = rootInActiveWindow
+            val viewerVisible = StatsStore.isTrackingEnabled(this@ReelAccessibilityService) &&
+                root?.packageName?.toString() == INSTAGRAM_PACKAGE && containsReelsPager(root)
+            if (viewerVisible) lastViewerDetectedAt = now
+
+            val elapsed = ((now - lastWatchTick) / 1000L).coerceIn(0L, 2L)
+            if (elapsed > 0L && now - lastViewerDetectedAt <= VIEWER_GRACE_MS) {
+                repeat(elapsed.toInt()) { StatsStore.recordWatchSecond(this@ReelAccessibilityService) }
+            }
+            lastWatchTick = now
+
+            if (!StatsStore.isTrackingEnabled(this@ReelAccessibilityService) ||
+                now - lastViewerDetectedAt > VIEWER_GRACE_MS
+            ) {
+                stopWatchTimer()
+                return
+            }
+            watchHandler.postDelayed(this, 1000L)
+        }
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -36,6 +68,8 @@ class ReelAccessibilityService : AccessibilityService() {
             lastReelItemCount = null
             return
         }
+
+        refreshWatchDetection()
 
         if (!StatsStore.isTrackingEnabled(this)) {
             lastReelIndex = null
@@ -103,6 +137,53 @@ class ReelAccessibilityService : AccessibilityService() {
         }
     }
 
+    private fun refreshWatchDetection() {
+        if (!StatsStore.isTrackingEnabled(this)) {
+            stopWatchTimer()
+            return
+        }
+        val root = rootInActiveWindow
+        if (root?.packageName?.toString() == INSTAGRAM_PACKAGE && containsReelsPager(root)) {
+            val now = SystemClock.elapsedRealtime()
+            lastViewerDetectedAt = now
+            if (!watchTimerRunning) {
+                watchTimerRunning = true
+                lastWatchTick = now
+                StatsStore.startSession(this)
+                StatsStore.addDiagnostic(this, "WATCH session started")
+                watchHandler.postDelayed(watchTick, 1000L)
+            }
+        }
+    }
+
+    private fun containsReelsPager(root: AccessibilityNodeInfo): Boolean {
+        var found = false
+        fun walk(node: AccessibilityNodeInfo, depth: Int) {
+            if (found || depth > 12) return
+            if (node.className?.toString() == REELS_VIEW_PAGER && node.isScrollable) {
+                val bounds = android.graphics.Rect()
+                node.getBoundsInScreen(bounds)
+                if (bounds.width() > 0 && bounds.height() > 0) found = true
+                return
+            }
+            for (i in 0 until node.childCount) {
+                val child = node.getChild(i) ?: continue
+                walk(child, depth + 1)
+                child.recycle()
+                if (found) return
+            }
+        }
+        walk(root, 0)
+        return found
+    }
+
+    private fun stopWatchTimer() {
+        if (!watchTimerRunning) return
+        watchTimerRunning = false
+        watchHandler.removeCallbacks(watchTick)
+        StatsStore.addDiagnostic(this, "WATCH session paused")
+    }
+
     private fun logScrollableNodes(root: AccessibilityNodeInfo?) {
         if (root == null) {
             StatsStore.addDiagnostic(this, "ROOT unavailable")
@@ -130,7 +211,14 @@ class ReelAccessibilityService : AccessibilityService() {
         walk(root, 0)
     }
 
-    override fun onInterrupt() = Unit
+    override fun onInterrupt() {
+        stopWatchTimer()
+    }
+
+    override fun onDestroy() {
+        stopWatchTimer()
+        super.onDestroy()
+    }
 
     companion object {
         private const val INSTAGRAM_PACKAGE = "com.instagram.android"
@@ -139,6 +227,7 @@ class ReelAccessibilityService : AccessibilityService() {
         private const val RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
         private const val CHANNEL_ID = "reel_counter_live"
         private const val NOTIFICATION_ID = 247
+        private const val VIEWER_GRACE_MS = 5000L
 
         fun updateNotification(context: Context, todayCount: Int) {
             if (Build.VERSION.SDK_INT >= 33 &&
