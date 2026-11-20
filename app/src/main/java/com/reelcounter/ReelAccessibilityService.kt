@@ -256,7 +256,7 @@ class ReelAccessibilityService : AccessibilityService() {
                 context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
             }
 
-            val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
+            val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ALPHA_8)
             val canvas = Canvas(bitmap)
             val label = todayCount.coerceAtLeast(0).toString()
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
