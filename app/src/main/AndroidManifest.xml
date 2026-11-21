@@ -5,10 +5,10 @@
 
     <application
         android:allowBackup="false"
-        android:label="Reelo"
-        android:icon="@drawable/ic_reel_logo"
-        android:roundIcon="@drawable/ic_reel_logo"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/ReeloTheme">
 
         <activity
             android:name=".MainActivity"

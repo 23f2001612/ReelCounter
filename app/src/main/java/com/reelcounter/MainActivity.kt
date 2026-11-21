@@ -263,7 +263,7 @@ class MainActivity : Activity() {
     private fun header(title: String, subtitle: String) {
         val brand = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val mark = ImageView(this).apply {
-            setImageResource(R.drawable.ic_reel_logo)
+            setImageResource(R.drawable.ic_reelo_brand)
             contentDescription = "Reelo logo"
             scaleType = ImageView.ScaleType.FIT_CENTER
             layoutParams = LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(10) }
