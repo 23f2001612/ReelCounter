@@ -265,13 +265,17 @@ class MainActivity : Activity() {
         val mark = ImageView(this).apply {
             setImageResource(R.drawable.ic_reel_logo)
             contentDescription = "Reelo logo"
-            layoutParams = LinearLayout.LayoutParams(dp(30), dp(30)).apply { rightMargin = dp(9) }
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            layoutParams = LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(10) }
         }
         brand.addView(mark)
-        brand.addView(label(title, yellow, 11f, true))
+        brand.addView(label("Reelo", white, 23f, true))
         page.addView(brand)
+        page.addView(label(title, yellow, 10f, true).apply {
+            setPadding(0, dp(13), 0, dp(2))
+        })
         page.addView(big(subtitle, white, if (resources.configuration.screenWidthDp < 380) 22f else 25f).apply {
-            setPadding(0, dp(10), 0, dp(17))
+            setPadding(0, dp(5), 0, dp(17))
         })
     }
 
