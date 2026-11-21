@@ -117,7 +117,7 @@ class MainActivity : Activity() {
     }
 
     private fun homePage() {
-        header("REELCOUNTER", "Your scrolling, made visible.")
+        header("REELO", "Your scrolling, made visible.")
         val tracking = StatsStore.isTrackingEnabled(this)
         val hero = cardLayout()
         hero.addView(label("TODAY'S REEL COUNT", muted, 11f))
@@ -208,7 +208,7 @@ class MainActivity : Activity() {
     }
 
     private fun settingsPage() {
-        header("SETTINGS", "Make ReelCounter work your way.")
+        header("SETTINGS", "Make Reelo work your way.")
         page.addView(section("Daily watch-time goal"))
         val goal = StatsStore.dailyGoalMinutes(this)
         page.addView(actionButton("Change goal · ${goal} minutes", card) {
@@ -238,13 +238,13 @@ class MainActivity : Activity() {
         page.addView(actionButton("Copy diagnostic log", yellow) {
             val diagnosticText = StatsStore.diagnostics(this)
             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("ReelCounter diagnostics", diagnosticText))
+            clipboard.setPrimaryClip(ClipData.newPlainText("Reelo diagnostics", diagnosticText))
             Toast.makeText(this, "Diagnostic log copied", Toast.LENGTH_SHORT).show()
         })
         val logs = cardLayout()
         logs.addView(label(StatsStore.diagnostics(this), muted, 10f))
         page.addView(logs)
-        page.addView(label("Privacy: statistics are stored locally on this device. ReelCounter does not read video content or identify what you watch.", muted, 11f).apply { setPadding(0, dp(16), 0, 0) })
+        page.addView(label("Privacy: statistics are stored locally on this device. Reelo does not read video content or identify what you watch.", muted, 11f).apply { setPadding(0, dp(16), 0, 0) })
     }
 
     private fun exportCsv() {
@@ -254,7 +254,7 @@ class MainActivity : Activity() {
         }
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/csv"
-            putExtra(Intent.EXTRA_SUBJECT, "ReelCounter statistics")
+            putExtra(Intent.EXTRA_SUBJECT, "Reelo statistics")
             putExtra(Intent.EXTRA_TEXT, rows.joinToString("\n"))
         }
         startActivity(Intent.createChooser(send, "Export statistics"))
@@ -264,8 +264,8 @@ class MainActivity : Activity() {
         val brand = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val mark = ImageView(this).apply {
             setImageResource(R.drawable.ic_reel_logo)
-            contentDescription = "ReelCounter logo"
-            layoutParams = LinearLayout.LayoutParams(dp(30), dp(30)).apply { rightMargin = dp(9) }
+            contentDescription = "Reelo logo"
+            layoutParams = LinearLayout.LayoutParams(dp(40), dp(40)).apply { rightMargin = dp(9) }
         }
         brand.addView(mark)
         brand.addView(label(title, yellow, 11f, true))
