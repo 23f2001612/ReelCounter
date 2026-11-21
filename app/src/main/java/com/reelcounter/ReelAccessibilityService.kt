@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.os.Build
 import android.os.Handler
@@ -263,6 +264,7 @@ class ReelAccessibilityService : AccessibilityService() {
             }
             val notification = builder
                 .setSmallIcon(R.drawable.ic_reelo_notification)
+                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.ic_reelo_capsule))
                 .setContentTitle("Reelo")
                 .setContentText("$todayCount Reels today")
                 .setOngoing(true)
