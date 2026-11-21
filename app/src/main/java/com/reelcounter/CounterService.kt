@@ -56,7 +56,7 @@ class CounterService : Service() {
         }
 
         return builder
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_reelo_notification)
             .setContentTitle("ReelCounter · Capsule test")
             .setContentText("Test count: $count")
             .setStyle(Notification.BigTextStyle().bigText("Test count: $count · Updates every 3 seconds"))
