@@ -6,8 +6,8 @@
     <application
         android:allowBackup="false"
         android:label="Reelo"
-        android:icon="@drawable/ic_reel_logo"
-        android:roundIcon="@drawable/ic_reel_logo"
+        android:icon="@drawable/ic_reelo_launcher"
+        android:roundIcon="@drawable/ic_reelo_launcher"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
