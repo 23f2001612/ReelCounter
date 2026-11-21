@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- The artwork is centered within the Android adaptive-icon safe area. -->
-    <path android:fillColor="#191C25" android:pathData="M0,0 H108 V108 H0 Z"/>
-    <path android:fillColor="#FFD241" android:pathData="M31,47 L77,47 Q81,47 81,51 L81,72 Q81,76 77,76 L31,76 Q27,76 27,72 L27,51 Q27,47 31,47 Z"/>
-    <path android:fillColor="#191C25" android:pathData="M31,51 H77 V72 H31 Z"/>
-    <path android:fillColor="#FFD241" android:pathData="M30,35 L73,26 Q77,25 78,29 L80,38 L29,49 L27,40 Q26,37 30,35 Z"/>
-    <path android:fillColor="#191C25" android:pathData="M37,34 L43,33 L38,46 L32,47 Z M50,31 L56,30 L51,43 L45,44 Z M63,28 L69,27 L64,40 L58,41 Z"/>
-    <path android:fillColor="#FFD241" android:pathData="M30,49 H78 V54 H30 Z"/>
-    <path android:fillColor="#191C25" android:pathData="M48,57 L48,68 L59,62.5 Z"/>
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Original Reelo icon: rounded dark square, compact rounded clapper, separate yellow line. -->
+    <path android:fillColor="#191B23" android:pathData="M17,8 H91 Q100,8 100,17 V91 Q100,100 91,100 H17 Q8,100 8,91 V17 Q8,8 17,8 Z"/>
+    <!-- Faithful rounded clapper silhouette from the supplied Reelo reference. -->
+    <path android:fillColor="#FFD241" android:pathData="M47.0,37.4 Q47.0,35.2 49.3,34.7 L60.8,32.6 Q63.6,32.1 64.0,34.6 L64.4,36.2 Q64.8,38.3 62.5,38.7 L47.0,41.4 Z"/>
+    <path android:fillColor="#191B23" android:pathData="M50.2,35.8 L52.9,35.3 L50.8,39.7 L48.2,40.1 Z M56.5,34.7 L59.3,34.2 L57.2,38.5 L54.4,39.0 Z"/>
+    <path android:fillColor="#FFD241" android:pathData="M47.0,41.0 Q47.0,39.3 48.7,39.3 L62.6,39.3 Q64.5,39.3 64.5,41.2 L64.5,47.1 Q64.5,50.5 61.1,50.5 L50.4,50.5 Q47.0,50.5 47.0,47.1 Z"/>
+    <path android:fillColor="#191B23" android:pathData="M49.0,43.1 L62.5,43.1 L62.5,47.0 Q62.5,48.5 61.0,48.5 L50.5,48.5 Q49.0,48.5 49.0,47.0 Z"/>
+    <path android:fillColor="#FFD241" android:pathData="M42.0,59.3 L66.0,59.3 Q67.5,59.3 67.5,60.8 Q67.5,62.3 66.0,62.3 L42.0,62.3 Q40.5,62.3 40.5,60.8 Q40.5,59.3 42.0,59.3 Z"/>
 </vector>
