@@ -269,7 +269,7 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(10) }
         }
         brand.addView(mark)
-        brand.addView(label("Reelo", white, 23f, true))
+        brand.addView(label("Reelo by Harry", white, 21f, true))
         page.addView(brand)
         page.addView(label(title, yellow, 10f, true).apply {
             setPadding(0, dp(13), 0, dp(2))
