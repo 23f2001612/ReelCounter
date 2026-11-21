@@ -249,7 +249,7 @@ class ReelAccessibilityService : AccessibilityService() {
             ) return
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(CHANNEL_ID, "ReelCounter live count", NotificationManager.IMPORTANCE_LOW).apply {
+                val channel = NotificationChannel(CHANNEL_ID, "Reelo live count", NotificationManager.IMPORTANCE_LOW).apply {
                     description = "Displays the confirmed Instagram Reel count"
                     setShowBadge(false)
                 }
@@ -276,7 +276,7 @@ class ReelAccessibilityService : AccessibilityService() {
             }
             val notification = builder
                 .setSmallIcon(Icon.createWithBitmap(bitmap))
-                .setContentTitle("ReelCounter")
+                .setContentTitle("Reelo")
                 .setContentText("$todayCount Reels today")
                 .setSubText("Instagram Reel counter")
                 .setOngoing(true)
