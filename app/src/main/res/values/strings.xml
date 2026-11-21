@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Reelo</string>
+    <string name="app_name">Reelo by Harry</string>
     <string name="accessibility_service_description">Detects scrolling events in Instagram to count Reels. It does not read message content.</string>
 </resources>
