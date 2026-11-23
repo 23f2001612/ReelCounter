@@ -3,7 +3,7 @@ name: Build Reelo APK
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "experiment/**" ]
+    branches: [ "main", "experiment/**", "feature/reelo-branding-after-run-66" ]
 
 permissions:
   contents: read
